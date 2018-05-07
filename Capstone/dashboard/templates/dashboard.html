@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <link rel="apple-touch-icon" sizes="76x76" href="/static/dashboard/img/apple-icon.png">
+    <link rel="icon" type="image/png" href="/static/dashboard/img/favicon.ico">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>AI Shop Floor Dashboard</title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no'
+          name='viewport'/>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css"/>
+    <!-- CSS Files -->
+    <link href="/static/dashboard/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/static/dashboard/css/light-bootstrap-dashboard.css?v=2.0.1" rel="stylesheet"/>
+    <link href="/static/dashboard/css/demo.css" rel="stylesheet"/>
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.css">
+    <link rel="stylesheet"
+          href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="/static/dashboard/css/bootstrap-datetimepicker.css"/>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js">
+    </script>
+    <script src="/static/dashboard/js/bootstrap.js">
+    </script>
+    <script src="/static/dashboard/js/bootstrap-datetimepicker.js">
+    </script>
+
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="sidebar" data-image="/static/dashboard/img/sidebar-4.jpg" data-color="blue">
+        <div class="sidebar-wrapper">
+            <div class="logo">
+                <a href="{% url "home" %}" class="simple-text">
+                    Dashboard
+                </a>
+            </div>
+            <ul class="nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url "home" %}">
+                        <i class="nc-icon nc-chart-pie-35"></i>
+                        <p>Machine List</p>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="main-panel">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg " color-on-scroll="500">
+            <div class=" container-fluid  ">
+                <span class="navbar-brand"> Data for Machine ID {{ machine_id }} </span>
+            </div>
+        </nav>
+        <!-- End Navbar -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class='col-sm-8'>
+                        <form method="post" role="form" action="{% url 'charts'  machine_id %}">
+                            <div class='col-sm-3'>
+                                <div class="form-group">
+                                    <div class='input-group date' id='datetimepicker1'>
+                                        <input type='text' class="form-control" name='startTime'/>
+                                        <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class="form-group">
+                                    <div class='input-group date' id='datetimepicker2'>
+                                        <input type='text' class="form-control" name='endTime'/>
+                                        <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="submit" value="Change Time Range" class="btn btn-primary"/>
+                            </div>
+                            {% csrf_token %}
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card ">
+                            <div class="card-header ">
+                                <h4 class="card-title">Temperature</h4>
+                                <p class="card-category">Time series data from {{ startTime }} to {{ endTime }}</p>
+                            </div>
+                            <div class="card-body ">
+                                <div id="linechart_tmp" style="width:100%; height: 150%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card ">
+                            <div class="card-header ">
+                                <h4 class="card-title">Vibration</h4>
+                                <p class="card-category">Time series data from {{ startTime }} to {{ endTime }}</p>
+                            </div>
+                            <div class="card-body ">
+                                <div id="linechart_noise"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card ">
+                            <div class="card-header ">
+                                <h4 class="card-title">Temperature</h4>
+                                <p class="card-category">Statics during the chosen time range</p>
+                            </div>
+                            <div class="card-body ">
+                                <div id="chart_tmp"></div>
+                            </div>
+                            <div class="card-footer ">
+                                <div class="legend">
+                                    <i class="fa fa-circle text-info"></i> Actual Value
+                                    <i class="fa fa-circle text-danger"></i> Upper
+                                    <i class="fa fa-circle text-warning"></i> Lower
+                                </div>
+                                <hr>
+                                <div class="stats">
+                                    <i class="fa fa-history"></i> Newest values
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card ">
+                            <div class="card-header ">
+                                <h4 class="card-title">Temperature</h4>
+                                <p class="card-category">Distributions during the chosen time range</p>
+                            </div>
+                            <div class="card-body ">
+                                <div id="columnchart_tmp"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card ">
+                            <div class="card-header ">
+                                <h4 class="card-title">Vibration</h4>
+                                <p class="card-category">Statics during the chosen time range</p>
+                            </div>
+                            <div class="card-body ">
+                                <div id="chart_noise"></div>
+                            </div>
+                            <div class="card-footer ">
+                                <div class="legend">
+                                    <i class="fa fa-circle text-info"></i> Actual Value
+                                    <i class="fa fa-circle text-danger"></i> Upper
+                                    <i class="fa fa-circle text-warning"></i> Lower
+                                </div>
+                                <hr>
+                                <div class="stats">
+                                    <i class="fa fa-history"></i> Newest values
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card ">
+                            <div class="card-header ">
+                                <h4 class="card-title">Vibration</h4>
+                                <p class="card-category">Distribution during the chosen time range</p>
+                            </div>
+                            <div class="card-body ">
+                                <div id="columnchart_noise"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card ">
+                            <div class="card-header ">
+                                <h4 class="card-title">Temperature & Vibration</h4>
+                                <p class="card-category">Comparison, to investigate the relationship with these two
+                                    factors</p>
+                            </div>
+                            <div class="card-body ">
+                                <div id="chart_div" style="width:99%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="footer">
+                    <div class="container">
+                        <nav>
+                            <p class="copyright text-center">
+                                ©
+                                <script>
+                                    document.write(new Date().getFullYear())
+                                </script>
+                                CMU Capstone
+                            </p>
+                        </nav>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+    <input id="startTime" type="hidden" value="{{ startTimeStamp }}"/>
+    <input id="endTime" type="hidden" value="{{ endTimeStamp }}"/>
+    <input id="machineId" type="hidden" value="{{ machine_id }}"/>
+</div>
+</body>
+<script src="/static/dashboard/js/light-bootstrap-dashboard.js?v=2.0.1" type="text/javascript"></script>
+<script src="/static/dashboard/js/demo.js"></script>
+<script type="text/javascript">
+    {#    datetime picker #}
+    $(function () {
+        $('#datetimepicker1').datetimepicker();
+        $('#datetimepicker2').datetimepicker();
+    });
+
+</script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    var startTime = $('#startTime').val();
+    var endTime = $('#endTime').val();
+    var machineId = $('#machineId').val();
+    {#    get data to load from backend with Json format data#}
+    $.get("/dashboard/getData/" + startTime + "/" + endTime + "/" + machineId)
+        .done(function (data) {
+            {#the gauge charts#}
+            google.charts.load('current', {'packages': ['gauge']});
+            google.charts.setOnLoadCallback(drawChart0);
+            function drawChart0() {
+
+                var data1 = google.visualization.arrayToDataTable(
+                    data.staticsT
+                );
+                var data2 = google.visualization.arrayToDataTable(
+                    data.staticsN
+                );
+                var size = $('#chart_tmp.card-body').width();
+                var options1 = {
+                    width: size, height: 0.3 * size,
+                    redFrom: data.dangerT, redTo: 40,
+                    yellowFrom: 0, yellowTo: data.warningT,
+                    minorTicks: 5,
+                    max: 40,
+                };
+                var options2 = {
+                    width: size, height: 0.3 * size,
+                    redFrom: data.dangerN, redTo: 40,
+                    yellowFrom: 0, yellowTo: data.warningN,
+                    minorTicks: 5,
+                    max: 40,
+                };
+                var chart = new google.visualization.Gauge(document.getElementById('chart_tmp'));
+                var chart2 = new google.visualization.Gauge(document.getElementById('chart_noise'));
+                chart.draw(data1, options1);
+                chart2.draw(data2, options2);
+            }
+
+            {#Time series#}
+            google.charts.load('current', {'packages': ['line']});
+            google.charts.setOnLoadCallback(drawChart);
+            function drawChart() {
+                var data1 = new google.visualization.DataTable();
+                data1.addColumn('datetime', 'Date');
+                data1.addColumn('number', 'Actual Value');
+                data1.addColumn('number', 'Upper Bound');
+                data1.addColumn('number', 'Lower Bound');
+                for (var i = 0; i < data.timeT.length; i++) {
+                    data.timeT[i][0] = new Date(data.timeT[i][0])
+                }
+                data1.addRows(data.timeT);
+
+                var data2 = new google.visualization.DataTable();
+                data2.addColumn('datetime', 'Date');
+                data2.addColumn('number', 'Actual Value');
+                data2.addColumn('number', 'Upper Bound');
+                data2.addColumn('number', 'Lower Bound');
+                for (var i = 0; i < data.timeN.length; i++) {
+                    data.timeN[i][0] = new Date(data.timeN[i][0])
+                }
+                data2.addRows(data.timeN);
+                {#                var formatter = new google.visualization.DateFormat({pattern: 'yyyy/MM/dd'});#}
+                {#                formatter.format(date2, 0);#}
+                var size = $('#linechart_tmp.card-body').width();
+                var options = {
+                    width: size * 2,
+                    height: size * 0.8,
+                    vAxis: {format: 'decimal'},
+                };
+
+                var chart = new google.charts.Line(document.getElementById('linechart_tmp'));
+                var chart2 = new google.charts.Line(document.getElementById('linechart_noise'));
+                chart.draw(data1, google.charts.Line.convertOptions(options));
+                chart2.draw(data2, google.charts.Line.convertOptions(options));
+            }
+
+            {#    the last chart #}
+            google.charts.load('current', {'packages': ['corechart', 'bar']});
+            google.charts.setOnLoadCallback(drawStuff);
+
+            function drawStuff() {
+                var chartDiv = document.getElementById('chart_div');
+                var data0 = google.visualization.arrayToDataTable(data.comparison);
+                var size = $('#chart_div.card-body').width();
+                var materialOptions = {
+                    width: size * 0.2,
+                    series: {
+                        0: {axis: 'temperature'}, // Bind series 0 to an axis named 'distance'.
+                        1: {axis: 'noise'} // Bind series 1 to an axis named 'brightness'.
+                    },
+                    vAxis: {format: 'decimal'},
+                    axes: {
+                        y: {
+                            distance: {label: 'temperature'}, // Left y-axis.
+                            brightness: {side: 'right', label: 'noise'} // Right y-axis.
+                        }
+                    }
+                };
+
+
+                function drawMaterialChart() {
+                    var materialChart = new google.charts.Bar(chartDiv);
+                    materialChart.draw(data0, google.charts.Bar.convertOptions(materialOptions));
+                }
+
+
+                drawMaterialChart();
+            };
+
+            {#    stacked column charts#}
+            google.charts.load("current", {packages: ['corechart']});
+            google.charts.setOnLoadCallback(drawChart3);
+            function drawChart3() {
+                data.stackedColT.unshift(['Genre', 'Ideal', 'OutOfBound', {role: 'annotation'}])
+                var data1 = google.visualization.arrayToDataTable(data.stackedColT);
+                data.stackedColN.unshift(['Genre', 'Ideal', 'OutOfBound', {role: 'annotation'}])
+                var data2 = google.visualization.arrayToDataTable(data.stackedColN);
+
+                var view1 = new google.visualization.DataView(data1);
+                var view2 = new google.visualization.DataView(data2);
+                var size = $('#columnchart_tmp.card-body').width();
+                var options = {
+                    width: size,
+                    height: size * 0.3,
+                    bar: {groupWidth: "75%"},
+                    legend: {position: 'top', maxLines: 6},
+                    isStacked: true,
+                };
+                var chart1 = new google.visualization.ColumnChart(document.getElementById("columnchart_tmp"));
+                chart1.draw(view1, options);
+                var chart2 = new google.visualization.ColumnChart(document.getElementById("columnchart_noise"));
+                chart2.draw(view2, options);
+            }
+        })
+</script>
+</html>
