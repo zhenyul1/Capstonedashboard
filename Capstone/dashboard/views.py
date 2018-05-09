@@ -13,13 +13,13 @@ def home(request):
     str = response.content.decode('utf-8')
     newStr = str.replace("}", "}!").replace("u'", "'").replace("L,", ",").replace("L}", "}")[:-1]
     machineArray = newStr.split("!")
-    machineStruct = namedtuple('machineStruct', 'last_service id name type_id')
+    machineStruct = namedtuple('machineStruct', 'last_service id name type_id desc')
     machineObjects = []
     for machine in machineArray:
         machineDic = ast.literal_eval(machine)
 
         tmp = machineStruct(last_service=machineDic['last_service'], id=int(machineDic['id']), name=machineDic['name'],
-                            type_id=int(machineDic['type_id']))
+                            type_id=int(machineDic['type_id']), desc=machineDic['desc'])
         machineObjects.append(tmp)
 
     context['machines'] = machineObjects
@@ -32,7 +32,7 @@ def charts(request, machine_id):
         context['machine_id'] = machine_id
         # we don't use the time for presente
         endTime = datetime.now() - timedelta(days=0)
-        startTime = endTime - timedelta(days=14)
+        startTime = endTime - timedelta(hours=3)
         sentEndTime = endTime.strftime("%m-%d-%Y %H:%M:%S").replace(" ", "%20")
         sentStartTime = startTime.strftime("%m-%d-%Y %H:%M:%S").replace(" ", "%20")
         # fix the time due to limit data

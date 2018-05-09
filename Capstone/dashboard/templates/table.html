@@ -69,7 +69,7 @@
                                         <tr>
                                             <td>{{ machine.id }}</td>
                                             <td><a href="{% url 'charts' machine.id %}">{{ machine.name }}</a></td>
-                                            <td>{{ machine.type_id }}</td>
+                                            <td>{{ machine.desc }}</td>
                                             <td>{{ machine.last_service }}</td>
                                         </tr>
                                     {% endfor %}
